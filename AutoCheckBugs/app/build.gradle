@@ -32,7 +32,7 @@ task findbugs(type: FindBugs) {
     effort = "max"
     reportLevel = "medium"
     classes = files("$project.buildDir/intermediates/classes")
-    excludeFilter = file("$rootProject.rootDir/app/config/findbugs/exclude.xml")
+    excludeFilter = file("$rootProject.rootDir/app/config/findbugs/exclude.xml")// 指定的文件
 
     source = fileTree('src/main/java/')
     classpath = files()
@@ -50,8 +50,8 @@ check.dependsOn 'checkstyle'// 检查依赖没有就从jcenter下载
 task checkstyle(type: Checkstyle) {
     configProperties.checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'config/checkstyle')
     source 'src'
-    include '**/*.java'
-    exclude '**/gen/**'
+    include '**/*.java'//检查的代码
+    exclude '**/gen/**'//不检查的代码
 
     classpath = files()
 }
