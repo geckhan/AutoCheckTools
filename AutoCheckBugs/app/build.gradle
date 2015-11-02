@@ -1,0 +1,82 @@
+apply plugin: 'com.android.application'
+apply plugin: 'findbugs'
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "cn.geckhan.autocheckbugs"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+
+check.dependsOn 'findbugs'// 检查依赖没有就从jcenter下载
+task findbugs(type: FindBugs) {
+    description 'Run findbugs'
+    group 'Source-Review'
+
+    ignoreFailures = false
+    effort = "max"
+    reportLevel = "medium"
+    classes = files("$project.buildDir/intermediates/classes")
+    excludeFilter = file("$rootProject.rootDir/app/config/findbugs/exclude.xml")
+
+    source = fileTree('src/main/java/')
+    classpath = files()
+    reports {
+        xml.enabled = false
+        xml.withMessages = true
+        html.enabled = !xml.isEnabled()
+        xml.destination "$project.buildDir/outputs/findbugs/findbugs-output.xml"
+        html.destination "$project.buildDir/outputs/findbugs/findbugs-output.html"
+    }
+}
+
+
+check.dependsOn 'checkstyle'// 检查依赖没有就从jcenter下载
+task checkstyle(type: Checkstyle) {
+    configProperties.checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'config/checkstyle')
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    classpath = files()
+}
+
+check.dependsOn 'pmd'// 检查依赖没有就从jcenter下载
+task pmd(type: Pmd, dependsOn: assembleDebug) {
+//    ruleSetFiles = files("${project.rootDir}/config/pmd/pmd-ruleset.xml")//不添加就使用默认的规则
+    description 'Run pmd'
+    group 'verification'
+    ignoreFailures = true
+    ruleSets = ["java-basic", "java-braces", "java-strings"]
+    source = fileTree('src/main/java')//代码位置
+    include '**/*.java'//包括哪些文件
+    exclude '**/gen/**'//排除哪些文件，这里写的时候注意下，排除多了会不检测的，不报错
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        html {
+            destination "$project.buildDir/pmdReports.html"//报告的位置
+        }
+    }
+}
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.android.support:design:23.1.0'
+}
